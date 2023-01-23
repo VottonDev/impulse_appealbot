@@ -94,7 +94,7 @@ function getBanAppeals() {
   // Get forum and put the json in a variable
   forum.getForum({ id: process.env.FORUM_NODE_ID }, '', function (_error, _message, body) {
     body.threads.forEach(function (val) {
-      if ((val.prefix_id === 0) && appealCache.includes(val.thread_id) === false) {
+      if (val.prefix_id === 0 && appealCache.includes(val.thread_id) === false) {
         appealCache.push(val.thread_id);
         checkBanAppeal(val.title, val.thread_id, val.custom_fields, val.user_id);
       }
