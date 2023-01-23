@@ -27,14 +27,14 @@ panelDb = undefined;
 appealCache = [];
 
 function dbConnect() {
-  const forumDb = mysql.createConnection({
+  forumDb = mysql.createConnection({
     host: process.env.XF_DB_HOST,
     user: process.env.XF_DB_USER,
     password: process.env.XF_DB_PASS,
     database: process.env.XF_DB_NAME,
   });
 
-  const panelDb = mysql.createConnection({
+  panelDb = mysql.createConnection({
     host: process.env.PANEL_DB_HOST,
     user: process.env.PANEL_DB_USER,
     password: process.env.PANEL_DB_PASS,
@@ -131,7 +131,7 @@ function checkBanAppeal(title, threadid, _data, userid) {
         }
 
         p = p + '\n[/LIST]';
-        p = encodeURI(p)
+        p = escape(p);
 
         // If the thread title already has steamid in it, don't post it again
         // nor update the thread
@@ -159,38 +159,59 @@ function checkBanAppeal(title, threadid, _data, userid) {
 }
 
 function getUserSteamID(userid, callback) {
-  forumDb.query(`SELECT provider_key FROM xf_user_connected_account WHERE provider = 'steam' AND user_id = '${userid}'`, function (err, result) {
-    if (err) throw err;
+  const sql = "SELECT provider_key FROM xf_user_connected_account WHERE provider = 'steam' AND user_id = ? LIMIT 1";
+  const params = [userid];
+
+  //validate the user input
+  if (!userid) {
+    return callback(new Error('User ID is missing'));
+  }
+  forumDb.query(sql, params, function (err, result) {
+    if (err) return callback(err);
 
     if (result.length > 0) {
-      callback(result[0].provider_key.toString());
+      callback(null, result[0].provider_key.toString());
+    } else {
+      callback(null, null);
     }
   });
 }
 
 function getForumUserBySteamID(steamid, callback) {
-  forumDb.query(`SELECT user_id FROM xf_user_connected_account WHERE provider = 'steam' AND provider_key = '${steamid}'`, function (err, result) {
-    if (err) throw err;
+  if (!steamid) {
+    return callback(new Error('Steam ID is missing'));
+  }
+  const sql = "SELECT user_id FROM xf_user_connected_account WHERE provider = 'steam' AND provider_key = ? LIMIT 1";
+  const params = [steamid];
+
+  forumDb.query(sql, params, function (err, result) {
+    if (err) return callback(err);
 
     if (result.length > 0) {
-      callback(true, result[0].user_id);
+      callback(null, true, result[0].user_id);
     } else {
-      callback(false);
+      callback(null, false);
     }
   });
 }
 
 function getBanOnUser(steamid, callback) {
-  panelDb.query(
-    `SELECT id, date_banned, length, reason, steamid64_admin FROM gex_bans WHERE steamid64 = '${steamid}' AND status = '0' AND (length = 0 OR DATE_ADD(date_banned, INTERVAL length minute) > CURRENT_TIMESTAMP())`,
-    function (err, result) {
-      if (err) throw err;
+  if (!steamid) {
+    return callback(new Error('Steam ID is missing'));
+  }
+  const sql =
+    "SELECT id, date_banned, length, reason, steamid64_admin FROM gex_bans WHERE steamid64 = ? AND status = '0' AND (length = 0 OR DATE_ADD(date_banned, INTERVAL length minute) > CURRENT_TIMESTAMP())";
+  const params = [steamid];
 
-      if (result.length > 0) {
-        callback(result[0]);
-      }
+  panelDb.query(sql, params, function (err, result) {
+    if (err) return callback(err);
+
+    if (result.length > 0) {
+      callback(null, result[0]);
+    } else {
+      callback(null, null);
     }
-  );
+  });
 }
 
 const snooze = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
