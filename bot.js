@@ -1,5 +1,5 @@
 require('dotenv').config();
-const wrapper = require('api-wrapper');
+const wrapper = require('@votton/api-wrapper');
 const mysql = require('mysql');
 
 forum = wrapper.create({
@@ -162,7 +162,7 @@ function getUserSteamID(userid, callback) {
   const sql = "SELECT provider_key FROM xf_user_connected_account WHERE provider = 'steam' AND user_id = ? LIMIT 1";
   const params = [userid];
 
-  //validate the user input
+  // validate the user input
   if (!userid) {
     return callback(new Error('User ID is missing'));
   }
