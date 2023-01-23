@@ -27,14 +27,14 @@ panelDb = undefined;
 appealCache = [];
 
 function dbConnect() {
-  forumDb = mysql.createConnection({
+  let forumDb = mysql.createConnection({
     host: process.env.XF_DB_HOST,
     user: process.env.XF_DB_USER,
     password: process.env.XF_DB_PASS,
     database: process.env.XF_DB_NAME,
   });
 
-  panelDb = mysql.createConnection({
+  let panelDb = mysql.createConnection({
     host: process.env.PANEL_DB_HOST,
     user: process.env.PANEL_DB_USER,
     password: process.env.PANEL_DB_PASS,
@@ -131,7 +131,7 @@ function checkBanAppeal(title, threadid, _data, userid) {
         }
 
         p = p + '\n[/LIST]';
-        p = escape(p);
+        p = encodeURI(p)
 
         // If the thread title already has steamid in it, don't post it again
         // nor update the thread
@@ -159,7 +159,7 @@ function checkBanAppeal(title, threadid, _data, userid) {
 }
 
 function getUserSteamID(userid, callback) {
-  forumDb.query("SELECT provider_key FROM xf_user_connected_account WHERE provider = 'steam' AND user_id = '" + userid + "'", function (err, result) {
+  forumDb.query(`SELECT provider_key FROM xf_user_connected_account WHERE provider = 'steam' AND user_id = '${userid}'`, function (err, result) {
     if (err) throw err;
 
     if (result.length > 0) {
@@ -169,7 +169,7 @@ function getUserSteamID(userid, callback) {
 }
 
 function getForumUserBySteamID(steamid, callback) {
-  forumDb.query("SELECT user_id FROM xf_user_connected_account WHERE provider = 'steam' AND provider_key = '" + steamid + "'", function (err, result) {
+  forumDb.query(`SELECT user_id FROM xf_user_connected_account WHERE provider = 'steam' AND provider_key = '${steamid}'`, function (err, result) {
     if (err) throw err;
 
     if (result.length > 0) {
@@ -182,9 +182,7 @@ function getForumUserBySteamID(steamid, callback) {
 
 function getBanOnUser(steamid, callback) {
   panelDb.query(
-    "SELECT id, date_banned, length, reason, steamid64_admin FROM gex_bans WHERE steamid64 = '" +
-      steamid +
-      "' AND status = '0' AND (length = 0 OR DATE_ADD(date_banned, INTERVAL length minute) > CURRENT_TIMESTAMP())",
+    `SELECT id, date_banned, length, reason, steamid64_admin FROM gex_bans WHERE steamid64 = '${steamid}' AND status = '0' AND (length = 0 OR DATE_ADD(date_banned, INTERVAL length minute) > CURRENT_TIMESTAMP())`,
     function (err, result) {
       if (err) throw err;
 
