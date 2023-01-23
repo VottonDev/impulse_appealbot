@@ -211,7 +211,7 @@ function getBanOnUser(steamid, callback) {
 const snooze = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const main = async () => {
-  if (forumDb === undefined || panelDb === undefined || (forumDb.state === 'disconnected') & (panelDb.state === 'disconnected')) {
+  if (forumDb === undefined || panelDb === undefined || (forumDb.state === 'disconnected') && (panelDb.state === 'disconnected')) {
     console.log('Trying to connect to the databases...');
     dbConnect();
     await snooze(5000);
