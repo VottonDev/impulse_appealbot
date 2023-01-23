@@ -159,8 +159,15 @@ function checkBanAppeal(title, threadid, _data, userid) {
 }
 
 function getUserSteamID(userid, callback) {
-  forumDb.query("SELECT provider_key FROM xf_user_connected_account WHERE provider = 'steam' AND user_id = '" + userid + "'", function (err, result) {
-    if (err) throw err;
+  const sql = "SELECT provider_key FROM xf_user_connected_account WHERE provider = 'steam' AND user_id = ? LIMIT 1";
+  const params = [userid];
+
+  //validate the user input
+  if (!userid) {
+    return callback(new Error('User ID is missing'));
+  }
+  forumDb.query(sql, params, function (err, result) {
+    if (err) return callback(err);
 
     if (result.length > 0) {
       callback(result[0].provider_key.toString());
@@ -169,30 +176,36 @@ function getUserSteamID(userid, callback) {
 }
 
 function getForumUserBySteamID(steamid, callback) {
-  forumDb.query("SELECT user_id FROM xf_user_connected_account WHERE provider = 'steam' AND provider_key = '" + steamid + "'", function (err, result) {
-    if (err) throw err;
+  if (!steamid) {
+    return callback(new Error('Steam ID is missing'));
+  }
+  const sql = "SELECT user_id FROM xf_user_connected_account WHERE provider = 'steam' AND provider_key = ? LIMIT 1";
+  const params = [steamid];
+
+  forumDb.query(sql, params, function (err, result) {
+    if (err) return callback(err);
 
     if (result.length > 0) {
       callback(true, result[0].user_id);
-    } else {
-      callback(false);
     }
   });
 }
 
 function getBanOnUser(steamid, callback) {
-  panelDb.query(
-    "SELECT id, date_banned, length, reason, steamid64_admin FROM gex_bans WHERE steamid64 = '" +
-      steamid +
-      "' AND status = '0' AND (length = 0 OR DATE_ADD(date_banned, INTERVAL length minute) > CURRENT_TIMESTAMP())",
-    function (err, result) {
-      if (err) throw err;
+  if (!steamid) {
+    return callback(new Error('Steam ID is missing'));
+  }
+  const sql =
+    "SELECT id, date_banned, length, reason, steamid64_admin FROM gex_bans WHERE steamid64 = ? AND status = '0' AND (length = 0 OR DATE_ADD(date_banned, INTERVAL length minute) > CURRENT_TIMESTAMP())";
+  const params = [steamid];
 
-      if (result.length > 0) {
-        callback(result[0]);
-      }
+  panelDb.query(sql, params, function (err, result) {
+    if (err) return callback(err);
+
+    if (result.length > 0) {
+      callback(result[0]);
     }
-  );
+  });
 }
 
 const snooze = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
