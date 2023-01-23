@@ -1,5 +1,5 @@
 require('dotenv').config();
-const wrapper = require('api-wrapper');
+const wrapper = require('@votton/api-wrapper');
 const mysql = require('mysql');
 
 forum = wrapper.create({
