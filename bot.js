@@ -171,8 +171,6 @@ function getUserSteamID(userid, callback) {
 
     if (result.length > 0) {
       callback(result[0].provider_key.toString());
-    } else {
-      callback(false);
     }
   });
 }
@@ -189,8 +187,6 @@ function getForumUserBySteamID(steamid, callback) {
 
     if (result.length > 0) {
       callback(true, result[0].user_id);
-    } else {
-      callback(false);
     }
   });
 }
@@ -208,8 +204,6 @@ function getBanOnUser(steamid, callback) {
 
     if (result.length > 0) {
       callback(result[0]);
-    } else {
-      callback(false);
     }
   });
 }
